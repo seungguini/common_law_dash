@@ -41,6 +41,9 @@ fig.update_yaxes(title_text='Count')
 print(master_df.size)
 app = Dash(__name__)
 
+server = app.server
+
+
 app.layout = html.Div(children=[
     html.H1(children='Differences in Annotations per Round'),
 
