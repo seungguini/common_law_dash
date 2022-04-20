@@ -1,4 +1,5 @@
 import plotly.express as px
+from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 from dash import Dash, dcc, html, Input, Output
 
@@ -9,7 +10,19 @@ Create a grouped bar chart of annotation differences per each round
 """
 
 
+
 def create_chart(df, group_no, category):
+    fig = make_subplots(
+        rows=4,  # Group per row
+        cols=2,  # Differences, distribution
+        subplot_titles=(
+            "Group 1: Differences in Annotations", "Group 1: Distribution of Annotations (Total)",
+            "Group 2: Differences in Annotations", "Group 1: Distribution of Annotations (Total)",
+            "Group 3: Differences in Annotations", "Group 1: Distribution of Annotations (Total)",
+            "Group 4: Differences in Annotations", "Group 1: Distribution of Annotations (Total)",
+        )
+    )
+    for group_no in
     fig = go.Figure(
         data=[
             go.Bar(
