@@ -9,21 +9,31 @@ Create a grouped bar chart of annotation differences per each round
 """
 
 
-def create_chart(df, group_no, category):
-    fig = go.Figure(
-        data=[
-            go.Bar(
-                name="Difference: " + str(difference),  # Dropdown category
-                x=df[df['group'] == group_no][df['difference'] == difference][df['category'] == category]['round'],
-                y=df[df['group'] == group_no][df['difference'] == difference][df['category'] == category]['value'],
-                offsetgroup=idx
-            ) for idx, difference in enumerate(range(0, 5))
-        ]
+def create_chart(df, category):
+    fig = px.histogram(
+        df[df['category'] == category],
+        x='round',
+        y='value',
+        color='difference',
+        barmode='group',
+        facet_col='group',
+        facet_col_wrap=2
     )
-
-    fig.update_xaxes(title_text='Round')
-    fig.update_yaxes(title_text='Count')
-
+    fig.update_xaxes(type='category')
+    # fig = go.Figure(
+    #     data=[
+    #         go.Bar(
+    #             name="Difference: " + str(difference),  # Dropdown category
+    #             x=df[df['group'] == group_no][df['difference'] == difference][df['category'] == category]['round'],
+    #             y=df[df['group'] == group_no][df['difference'] == difference][df['category'] == category]['value'],
+    #             offsetgroup=idx
+    #         ) for idx, difference in enumerate(range(0, 5))
+    #     ]
+    # )
+    #
+    # fig.update_xaxes(title_text='Round')
+    # fig.update_yaxes(title_text='Count')
+    #
     return fig
 
 
@@ -32,12 +42,12 @@ def create_chart(df, group_no, category):
 master_df = calculate_differences()
 ANNOTATION_CATEGORIES = ['Appropriateness', 'Information content of outputs', 'Humanlikeness']
 
-fig = create_chart(master_df, 1, 'Appropriateness')
+fig = create_chart(master_df, 'Appropriateness')
 
 # ===== UPDATE AXES =====
 
-fig.update_xaxes(title_text='Round')
-fig.update_yaxes(title_text='Count')
+# fig.update_xaxes(title_text='Round')
+# fig.update_yaxes(title_text='Count')
 
 print(master_df.size)
 app = Dash(__name__)
@@ -101,7 +111,7 @@ def update_dropdown_values(group_no, category):
     Input('filter-store', 'data')
 )
 def update_category_chart(filter_json):
-    return create_chart(master_df, filter_json['group_no'], filter_json['category'])
+    return create_chart(master_df, filter_json['category'])
 
 
 if __name__ == '__main__':
