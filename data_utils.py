@@ -81,19 +81,6 @@ def read_data():
 
     return rounds
 
-def get_dfs():
-
-    # Grab data
-    data = read_data()
-
-    # Grab DFs
-    difference_df = calculate_differences(data)
-    kappa_df = calculate_cohen_kappa(data)
-    annotation_df = calculate_count(data)
-    group_kappa_data = calculate_group_kappa(data)
-
-    return difference_df, kappa_df, annotation_df, group_kappa_data
-
 
 def calculate_differences(data):
     # For each group, calculate their cohen's kappa
@@ -140,6 +127,7 @@ def calculate_differences(data):
 
     return master_df
 
+
 def calculate_cohen_kappa(data):
     kappa_df = pd.DataFrame(columns=['kappa_score', 'category', 'round', 'group'])
     print('attempting to calculate differences')
@@ -185,8 +173,8 @@ def calculate_cohen_kappa(data):
 
     return kappa_df
 
-def calculate_group_kappa(data):
 
+def calculate_group_kappa(data):
     kappa_df = pd.DataFrame(columns=['kappa_score', 'category', 'round', 'group'])
     print('attempting to calculate differences')
     print(os.getcwd())
@@ -198,6 +186,7 @@ def calculate_group_kappa(data):
     all_rounds = {}
 
     for ROUND_NUMBER in ROUNDS:
+        all_rounds[ROUND_NUMBER] = {} # To be filled with annotation specific kappa scores
         # for ROUND_NUMBER in range(1,ROUNDS):
         round = data[ROUND_NUMBER]
 
@@ -223,12 +212,23 @@ def calculate_group_kappa(data):
                     raters[annotation_category].append(annotations)
                 # Read xlsx files into two different Series
 
+        for annotation_category in ANNOTATION_CATEGORIES:
+            kappa_rater = raters[annotation_category] # List of all raters for the category, for this round
+            kappa_data = np.zeros((len(kappa_rater), len(kappa_rater)))
+            # Calculate cohen_kappa_score for every combination of raters
+            # Combinations are only calculated j -> k, but not k -> j, which are equal
+            # So not all places in the matrix are filled.
+            for j, k in list(itertools.combinations(range(len(kappa_rater)), r=2)):
+                kappa_data[j, k] = cohen_kappa_score(kappa_rater[j], kappa_rater[k])
 
-        kappa_data = np.zeros((len(raters), len(raters)))
-        all_rounds[ROUND_NUMBER] = kappa_data
+            for j in range(len(kappa_rater)):
+                for k in range(len(kappa_rater)):
+                    if kappa_data[j, k] == float(0):
+                        kappa_data[j, k] = None
+
+            all_rounds[ROUND_NUMBER][annotation_category] = kappa_data
 
     return all_rounds
-
 
 
 def calculate_count(data):
@@ -258,7 +258,6 @@ def calculate_count(data):
                 # Read xlsx files into two different Series
 
                 for annotation_score in raters:
-
                     # master_df = pd.DataFrame(columns=['value', 'difference', 'category', 'round', 'group'])
                     row_dict = {'annotation': annotation_score, 'category': annotation_category,
                                 'round': ROUND_NUMBER, 'group': GROUP_NO}
@@ -266,3 +265,16 @@ def calculate_count(data):
                     annotation_df = annotation_df.append(row_dict, ignore_index=True)
 
     return annotation_df
+
+
+def get_dfs():
+    # Grab data
+    data = read_data()
+
+    # Grab DFs
+    difference_df = calculate_differences(data)
+    kappa_df = calculate_cohen_kappa(data)
+    annotation_df = calculate_count(data)
+    group_kappa_data = calculate_group_kappa(data)
+
+    return difference_df, kappa_df, annotation_df, group_kappa_data
