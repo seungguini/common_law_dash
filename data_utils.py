@@ -63,8 +63,6 @@ def read_data():
                 for xlsx_annotator in xlsx_files:
                     annotator_df = pd.read_excel(xlsx_annotator, engine='openpyxl')[:50]
 
-                    print(annotation_category)
-
                     # Convert each column (series) into lists
                     annotations = annotator_df[annotation_category]
 
@@ -84,8 +82,14 @@ def read_data():
 
 def calculate_differences(data):
     # For each group, calculate their cohen's kappa
+    differences_data = {
+        'value': [],
+        'difference': [],
+        'category': [],
+        'round': [],
+        'group': []
+    }
 
-    master_df = pd.DataFrame(columns=['value', 'difference', 'category', 'round', 'group'])
     print('attempting to calculate differences')
     print(os.getcwd())
 
@@ -123,13 +127,23 @@ def calculate_differences(data):
                     row_dict = {'value': difference, 'difference': idx, 'category': annotation_category,
                                 'round': ROUND_NUMBER, 'group': GROUP_NO}
 
-                    master_df = master_df.append(row_dict, ignore_index=True)
+                    differences_data['value'].append(difference)
+                    differences_data['difference'].append(idx)
+                    differences_data['category'].append(annotation_category)
+                    differences_data['round'].append(ROUND_NUMBER)
+                    differences_data['group'].append(GROUP_NO)
 
-    return master_df
+    return pd.DataFrame(differences_data)
 
 
 def calculate_cohen_kappa(data):
-    kappa_df = pd.DataFrame(columns=['kappa_score', 'category', 'round', 'group'])
+    kappa_data_list = {
+        'kappa_score': [],
+        'category': [],
+        'round': [],
+        'group': []
+    }
+
     print('attempting to calculate differences')
     print(os.getcwd())
 
@@ -169,13 +183,22 @@ def calculate_cohen_kappa(data):
                 row_dict = {'kappa_score': kappa_score, 'category': annotation_category,
                             'round': ROUND_NUMBER, 'group': GROUP_NO}
 
-                kappa_df = kappa_df.append(row_dict, ignore_index=True)
+                kappa_data_list['kappa_score'].append(kappa_score)
+                kappa_data_list['category'].append(annotation_category)
+                kappa_data_list['round'].append(ROUND_NUMBER)
+                kappa_data_list['group'].append(GROUP_NO)
 
-    return kappa_df
+    return pd.DataFrame(kappa_data_list)
 
 
 def calculate_group_kappa(data):
-    kappa_df = pd.DataFrame(columns=['kappa_score', 'category', 'round', 'group'])
+    annotation_data = {
+        'kappa_score': [],
+        'category': [],
+        'round': [],
+        'group': []
+    }
+
     print('attempting to calculate differences')
     print(os.getcwd())
 
@@ -232,7 +255,13 @@ def calculate_group_kappa(data):
 
 
 def calculate_count(data):
-    annotation_df = pd.DataFrame(columns=['annotation', 'category', 'round', 'group'])
+    annotation_data = {
+        'annotation': [],
+        'category': [],
+        'round': [],
+        'group': []
+    }
+    # annotation_df = pd.DataFrame(columns=['annotation', 'category', 'round', 'group'])
     print('attempting to calculate differences')
     print(os.getcwd())
 
@@ -259,15 +288,17 @@ def calculate_count(data):
 
                 for annotation_score in raters:
                     # master_df = pd.DataFrame(columns=['value', 'difference', 'category', 'round', 'group'])
-                    row_dict = {'annotation': annotation_score, 'category': annotation_category,
-                                'round': ROUND_NUMBER, 'group': GROUP_NO}
 
-                    annotation_df = annotation_df.append(row_dict, ignore_index=True)
+                    annotation_data['annotation'].append(annotation_score)
+                    annotation_data['category'].append(annotation_category)
+                    annotation_data['round'].append(ROUND_NUMBER)
+                    annotation_data['group'].append(GROUP_NO)
 
-    return annotation_df
+    return pd.DataFrame(annotation_data)
 
 
 def get_dfs():
+    print('get df ran again :(')
     # Grab data
     data = read_data()
 

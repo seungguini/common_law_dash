@@ -102,7 +102,8 @@ def create_heatmap_kappa(data, category):
                 z=round_data,
                 type='heatmap',
                 hoverongaps=False,
-                coloraxis='coloraxis'
+                coloraxis='coloraxis',
+                text=round_data
             ), 1, idx + 1
         )
 
