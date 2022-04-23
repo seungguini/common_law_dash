@@ -53,10 +53,32 @@ def create_histograms_differences(df, category):
         facet_row='group',
     )
     fig.update_xaxes(type='category')
-    fig.for_each_annotation(lambda a: a.update(text='Count', xanchor='left'))
-    # fig.update_layout(title="Differences in Annotations per Round",
-    #                   xaxis_title='Round',
-    #                   yaxis_title="Count")
+
+    # === Update y-axis text ===
+
+    # Remove all subplot y axes
+    for axis in fig.layout:
+        if type(fig.layout[axis]) == go.layout.YAxis:
+            fig.layout[axis].title.text = ''
+
+    fig.update_layout(
+        # keep the original annotations and add a list of new annotations:
+        annotations=list(fig.layout.annotations) + [
+            go.layout.Annotation(
+                x=-0.07,
+                y=0.5,
+                font=dict(
+                    size=14
+                ),
+                showarrow=False,
+                text="Count",
+                textangle=-90,
+                xref="paper",  # Positions labels independent of subplots
+                yref="paper"
+            )
+        ]
+    )
+
     return fig
 
 
@@ -70,11 +92,31 @@ def create_histograms_annotations(df, category):
         facet_row='group',
     )
     fig.update_xaxes(type='category')
-    fig.for_each_annotation(lambda a: a.update(text='Count', xanchor='left'))
-    # fig.update_layout(title="Differences in Annotations per Round",
-    #                   xaxis_title='Round',
-    #                   yaxis_title="Count")
+
+    # Remove all subplot y axes
+    for axis in fig.layout:
+        if type(fig.layout[axis]) == go.layout.YAxis:
+            fig.layout[axis].title.text = ''
+
+    fig.update_layout(
+        # keep the original annotations and add a list of new annotations:
+        annotations=list(fig.layout.annotations) + [
+            go.layout.Annotation(
+                x=-0.07,
+                y=0.5,
+                font=dict(
+                    size=14
+                ),
+                showarrow=False,
+                text="Count",
+                textangle=-90,
+                xref="paper",  # Positions labels independent of subplots
+                yref="paper"
+            )
+        ]
+    )
     return fig
+
 
 def create_heatmap_kappa(data, category):
     fig = make_subplots(
@@ -82,14 +124,13 @@ def create_heatmap_kappa(data, category):
         len(data.keys()),
         vertical_spacing=0.05,
         horizontal_spacing=0.05,
-        shared_yaxes=True
+        shared_yaxes=True,
+        subplot_titles=[f"Round {i}" for i in data.keys()]
     )
 
     # Patches to add emphasis on groups
 
     for idx, round in enumerate(data):
-
-
         round_data = data[round][category]
 
         xpatches = [i for i in range(len(round_data)) if i % 2 == 1]  # Odd idx get patches
@@ -97,17 +138,20 @@ def create_heatmap_kappa(data, category):
 
         fig.add_trace(
             go.Heatmap(
-                x=[f"Rater {group_no+1}" for group_no in range(len(round_data))],
-                y=[f"Rater {group_no+1}" for group_no in range(len(round_data))],
+                x=[f"Rater {group_no + 1}" for group_no in range(len(round_data))],
+                y=[f"Rater {group_no + 1}" for group_no in range(len(round_data))],
                 z=round_data,
                 type='heatmap',
                 hoverongaps=False,
                 coloraxis='coloraxis',
-                text=round_data
+                text=round_data,
+                texttemplate="%{text:.2f}",
+                textfont={"size": 10}
             ), 1, idx + 1
         )
 
-
-    fig.update_layout(coloraxis={'colorscale': 'viridis'})
+    fig.update_layout(
+        coloraxis={'colorscale': 'viridis'},
+    )
 
     return fig

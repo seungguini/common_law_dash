@@ -1,4 +1,5 @@
 from dash import Dash, dcc, html, Input, Output
+import dash_bootstrap_components as dbc
 
 from dash_utils import ANNOTATION_CATEGORIES, create_linechart, create_histograms_differences, \
     create_histograms_annotations, create_heatmap_kappa
@@ -34,54 +35,54 @@ def query_data():
 app.layout = html.Div(children=[
     html.H1(children='Common Law Annotations'),
 
-    html.Div(children='''
+    html.H2(children='''
         An interactive chart for Common Law Annotations
     '''),
 
-    html.H2(children="Inter-group Inter-annotator Agreement per Round"),
+    html.H3(children="Inter-annotator Agreement per Round"),
     dcc.Graph(
         id='linechart-graph',
         figure=create_linechart(query_data()[1]),
-        style={'width': '90vw', 'height': '60vh'}  # Set graph size
+
     ),
 
-    # Dropdown for group
-    dcc.Dropdown(
-        id='group-no-dropdown',
-        options=[
-            {
-                'value': group_no,
-                'label': 'Group ' + str(group_no)
-            } for group_no in range(1, 6)
-        ],
-        value=1  # Default value
+    html.Div(
+        [
+            "Annotation Category:",
+            # Dropdown for category
+            dcc.Dropdown(
+                id='category-dropdown',
+                options=ANNOTATION_CATEGORIES,
+                value=ANNOTATION_CATEGORIES[0],  # Default value
+                style={'width': '50vw'}
+            ),
+        ]
     ),
 
-    # Dropdown for category
-    dcc.Dropdown(
-        id='category-dropdown',
-        options=ANNOTATION_CATEGORIES,
-        value=ANNOTATION_CATEGORIES[0]  # Default value
-    ),
-
-    html.H2(children="Intra-group Inter-Annotator Agreement per Round"),
+    html.H3("Intra-group Inter-Annotator Agreement per Round"),
     dcc.Graph(
         id='heatmap-graph',
         figure=create_heatmap_kappa(query_data()[3], 'Appropriateness'),
         style={'width': '90vw', 'height': '60vh'}  # Set graph size
     ),
 
-    html.H2(children='Differences in Annotations per Round'),
+    # Wrap around Div to place graphs side-by-side
 
-    dcc.Graph(
-        id='differences-graph',
-        figure=create_histograms_differences(query_data()[0], 'Appropriateness')
-    ),
+    html.Div(children=[
+        html.H3("Number of Annotations per Round (within-group)"),
+        dcc.Graph(
+            id='annotations-graph',
+            figure=create_histograms_annotations(query_data()[2], 'Appropriateness'),
+            # style={'display': 'inline-block', 'width': '50vw'},
+        ),
 
-    dcc.Graph(
-        id='annotations-graph',
-        figure=create_histograms_annotations(query_data()[2], 'Appropriateness')
-    ),
+        html.H3("Absolute Difference in Annotations per Round (within-group)"),
+        dcc.Graph(
+            id='differences-graph',
+            figure=create_histograms_differences(query_data()[0], 'Appropriateness'),
+        ),
+
+    ]),
 
     # Store dropdown selection on local browser session
     dcc.Store(id='filter-store')
@@ -96,12 +97,10 @@ app.layout = html.Div(children=[
 # Store dropdown values to local session storage
 @app.callback(
     Output('filter-store', 'data'),
-    Input('group-no-dropdown', 'value'),
     Input('category-dropdown', 'value')
 )
-def update_dropdown_values(group_no, category):
+def update_dropdown_values(category):
     return {
-        'group_no': group_no,
         'category': category
     }
 
