@@ -3,6 +3,7 @@ from dash import Dash, dcc, html, Input, Output
 from dash_utils import ANNOTATION_CATEGORIES, create_linechart, create_histograms_differences, \
     create_histograms_annotations, create_heatmap_kappa
 from data_utils import get_dfs
+from flask_caching import Cache
 
 """
 Create a grouped bar chart of annotation differences per each round
@@ -11,25 +12,24 @@ Create a grouped bar chart of annotation differences per each round
 # Create line chart for kappa scores
 
 
-# ===== DATA =====
-# Grab dataframes
-differences_df, kappa_df, annotation_df, kappa_data = get_dfs()
-
-# ===== BUILD BASE CHART =====
-
-histogram_fig = create_histograms_differences(differences_df, 'Appropriateness')
-linechart_fig = create_linechart(kappa_df)
-annotation_fig = create_histograms_annotations(annotation_df, 'Appropriateness')  # For counting annotations
-heatmap_fig = create_heatmap_kappa(kappa_data, 'Appropriateness')
 # ===== UPDATE AXES =====
 
-# fig.update_xaxes(title_text='Round')
-# fig.update_yaxes(title_text='Count')
-
-print(differences_df.size)
 app = Dash(__name__)
+cache = Cache(app.server, config={
+    'CACHE_TYPE': 'simple',
+})
+app.config.suppress_callback_exceptions = True
 
 server = app.server
+
+TIMEOUT = 60
+
+
+@cache.memoize(timeout=TIMEOUT)  # Memoize to avoid re-loading data
+def query_data():
+    print('querying data')
+    return get_dfs()
+
 
 app.layout = html.Div(children=[
     html.H1(children='Common Law Annotations'),
@@ -41,18 +41,9 @@ app.layout = html.Div(children=[
     html.H2(children="Inter-group Inter-annotator Agreement per Round"),
     dcc.Graph(
         id='linechart-graph',
-        figure=linechart_fig,
+        figure=create_linechart(query_data()[1]),
         style={'width': '90vw', 'height': '60vh'}  # Set graph size
     ),
-
-    html.H2(children="Intra-group Inter-Annotator Agreement per Round"),
-    dcc.Graph(
-        id='heatmap-graph',
-        figure=heatmap_fig,
-        style={'width': '90vw', 'height': '60vh'}  # Set graph size
-    ),
-
-    html.H2(children='Differences in Annotations per Round'),
 
     # Dropdown for group
     dcc.Dropdown(
@@ -73,14 +64,23 @@ app.layout = html.Div(children=[
         value=ANNOTATION_CATEGORIES[0]  # Default value
     ),
 
+    html.H2(children="Intra-group Inter-Annotator Agreement per Round"),
+    dcc.Graph(
+        id='heatmap-graph',
+        figure=create_heatmap_kappa(query_data()[3], 'Appropriateness'),
+        style={'width': '90vw', 'height': '60vh'}  # Set graph size
+    ),
+
+    html.H2(children='Differences in Annotations per Round'),
+
     dcc.Graph(
         id='differences-graph',
-        figure=histogram_fig
+        figure=create_histograms_differences(query_data()[0], 'Appropriateness')
     ),
 
     dcc.Graph(
         id='annotations-graph',
-        figure=annotation_fig
+        figure=create_histograms_annotations(query_data()[2], 'Appropriateness')
     ),
 
     # Store dropdown selection on local browser session
@@ -88,6 +88,8 @@ app.layout = html.Div(children=[
 
 ])
 
+
+# ==== LOAD DATA ====
 
 # ===== CALLBACKS FOR DROPDOWNS =====
 
@@ -112,9 +114,10 @@ def update_dropdown_values(group_no, category):
 )
 def update_category_chart(filter_json):
     return (
-        create_histograms_differences(differences_df, filter_json['category']),
-        create_histograms_annotations(annotation_df, filter_json['category']),
-        create_heatmap_kappa(kappa_data, filter_json['category'])
+        create_histograms_differences(query_data()[0], filter_json['category']),
+        # skips kappa linechart - no categorical selections
+        create_histograms_annotations(query_data()[2], filter_json['category']),
+        create_heatmap_kappa(query_data()[3], filter_json['category'])
     )
 
 
