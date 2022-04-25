@@ -174,7 +174,7 @@ def calculate_cohen_kappa(data):
                 # Combinations are only calculated j -> k, but not k -> j, which are equal
                 # So not all places in the matrix are filled.
                 for j, k in list(itertools.combinations(range(len(raters)), r=2)):
-                    kappa_data[j, k] = cohen_kappa_score(raters[j], raters[k])
+                    kappa_data[j, k] = cohen_kappa_score(raters[j], raters[k], weights='linear')
 
                 kappa_score = kappa_data[0][1]
                 # Add kappa score to dataframe
@@ -235,7 +235,7 @@ def calculate_group_kappa(data):
             # Combinations are only calculated j -> k, but not k -> j, which are equal
             # So not all places in the matrix are filled.
             for j, k in list(itertools.combinations(range(len(kappa_rater)), r=2)):
-                kappa_data[j, k] = cohen_kappa_score(kappa_rater[j], kappa_rater[k])
+                kappa_data[j, k] = cohen_kappa_score(kappa_rater[j], kappa_rater[k], weights='linear')
 
             for j in range(len(kappa_rater)):
                 for k in range(len(kappa_rater)):

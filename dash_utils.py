@@ -152,7 +152,7 @@ def create_heatmap_kappa(data, category):
         )
 
     fig.update_layout(
-        coloraxis={'colorscale': 'viridis'},
+        coloraxis={'colorscale': 'PuBu'},
     )
 
     return fig
@@ -200,9 +200,9 @@ def create_contingency_heatmap(data, kappa_data, category):
                     text=annotation_data,
                     texttemplate="%{text: d}",
                     textfont={"size": 10},
-
                 ), group, round
             )
+
 
     fig.update_layout(
         coloraxis={'colorscale': 'PuBu'},
