@@ -127,7 +127,7 @@ def create_heatmap_kappa(data, category):
         horizontal_spacing=0.05,
         # shared_yaxes=True,
         # subplot_titles=[f"Round {i}" for i in data.keys()]
-        subplot_titles=[f"Round 1", "Round 2"]
+        subplot_titles=[f"Round 1", "Round 2", "Round 3"]
     )
 
     # Patches to add emphasis on groups
