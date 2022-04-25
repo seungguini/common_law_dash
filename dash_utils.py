@@ -121,20 +121,21 @@ def create_histograms_annotations(df, category):
 def create_heatmap_kappa(data, category):
     fig = make_subplots(
         1,
-        len(data.keys()),
+        3,
+        # len(data.keys()),
         vertical_spacing=0.05,
         horizontal_spacing=0.05,
-        shared_yaxes=True,
-        subplot_titles=[f"Round {i}" for i in data.keys()]
+        # shared_yaxes=True,
+        # subplot_titles=[f"Round {i}" for i in data.keys()]
+        subplot_titles=[f"Round 1", "Round 2"]
     )
 
     # Patches to add emphasis on groups
 
-    for idx, round in enumerate(data):
+    for idx, round in enumerate(data.keys()):
+        if round > 3:
+            break
         round_data = data[round][category]
-
-        xpatches = [i for i in range(len(round_data)) if i % 2 == 1]  # Odd idx get patches
-        ypatches = [i for i in range(len(round_data)) if i % 2 == 0]  # Odd idx get patches
 
         fig.add_trace(
             go.Heatmap(
@@ -152,6 +153,73 @@ def create_heatmap_kappa(data, category):
 
     fig.update_layout(
         coloraxis={'colorscale': 'viridis'},
+    )
+
+    return fig
+
+
+def create_contingency_heatmap(data, kappa_data, category):
+
+    NUM_ROUNDS = 3
+
+    subplot_titles = []
+    # GROUP FIRST - group = row, round = col
+    for group in range(1, 5):  # 4 groups
+        for round in range(1, NUM_ROUNDS + 1):
+            annotation_score = format(kappa_data[kappa_data['category'] == category][kappa_data['round'] == round][kappa_data['group'] == group]['kappa_score'].iloc[0], ".2f")
+            subplot_titles.append(f"κ: {annotation_score}")
+    fig = make_subplots(
+        rows=4, # Number of groups - rows
+        cols=NUM_ROUNDS,
+        # len(data.keys()), # Number of rounds - cols
+        vertical_spacing=0.1,
+        horizontal_spacing=0.05,
+        subplot_titles=subplot_titles,
+    )
+
+    # Patches to add emphasis on groups
+
+    for round in data.keys():
+        if round > NUM_ROUNDS:
+            break
+
+        for group in data[round].keys():
+
+            annotation_data = data[round][group][category]
+
+            # for idx, group in enumerate(round_data.keys()):
+
+            fig.add_trace(
+                go.Heatmap(
+                    x=[f"{i}" for i in [1,2,3,4,5]], # The five possible annotation scores
+                    y=[f"{i}" for i in [1,2,3,4,5]], # The five possible annotation scores
+                    z=annotation_data,
+                    type='heatmap',
+                    hoverongaps=False,
+                    coloraxis='coloraxis',
+                    text=annotation_data,
+                    texttemplate="%{text: d}",
+                    textfont={"size": 10},
+
+                ), group, round
+            )
+
+    fig.update_layout(
+        coloraxis={'colorscale': 'PuBu'},
+    )
+
+    # fig.update_layout(yaxis=dict(scaleanchor='x'))
+
+    # Update master x axes
+    for round in range(1, NUM_ROUNDS+1):
+        fig.update_xaxes(title_text=f"Round {round}", row=4, col=round)
+
+    # Update master y axes
+    for group in range(1, 5): # 4 groups
+        fig.update_yaxes(title_text=f"Group {group}", row=group, col=1)
+
+    fig.update_layout(
+        title=f'Contingency Table for {category}'
     )
 
     return fig

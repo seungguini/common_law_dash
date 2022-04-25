@@ -2,7 +2,7 @@ from dash import Dash, dcc, html, Input, Output
 import dash_bootstrap_components as dbc
 
 from dash_utils import ANNOTATION_CATEGORIES, create_linechart, create_histograms_differences, \
-    create_histograms_annotations, create_heatmap_kappa
+    create_histograms_annotations, create_heatmap_kappa, create_contingency_heatmap
 from data_utils import get_dfs
 from flask_caching import Cache
 
@@ -66,6 +66,13 @@ app.layout = html.Div(children=[
         style={'width': '90vw', 'height': '60vh'}  # Set graph size
     ),
 
+    html.H3("Annotation Contigency Tables"),
+    dcc.Graph(
+        id='contingency-graph',
+        figure=create_contingency_heatmap(query_data()[4], query_data()[1], 'Appropriateness'),
+        style={'width': '90vw', 'height': '90vh'}  # Set graph size
+    ),
+
     # Wrap around Div to place graphs side-by-side
 
     html.Div(children=[
@@ -109,6 +116,7 @@ def update_dropdown_values(category):
     Output('differences-graph', 'figure'),
     Output('annotations-graph', 'figure'),
     Output('heatmap-graph', 'figure'),
+    Output('contingency-graph', 'figure'),
     Input('filter-store', 'data'),
 )
 def update_category_chart(filter_json):
@@ -116,7 +124,8 @@ def update_category_chart(filter_json):
         create_histograms_differences(query_data()[0], filter_json['category']),
         # skips kappa linechart - no categorical selections
         create_histograms_annotations(query_data()[2], filter_json['category']),
-        create_heatmap_kappa(query_data()[3], filter_json['category'])
+        create_heatmap_kappa(query_data()[3], filter_json['category']),
+        create_contingency_heatmap(query_data()[4], query_data()[1], filter_json['category']),
     )
 
 

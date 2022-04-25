@@ -192,13 +192,6 @@ def calculate_cohen_kappa(data):
 
 
 def calculate_group_kappa(data):
-    annotation_data = {
-        'kappa_score': [],
-        'category': [],
-        'round': [],
-        'group': []
-    }
-
     print('attempting to calculate differences')
     print(os.getcwd())
 
@@ -209,7 +202,7 @@ def calculate_group_kappa(data):
     all_rounds = {}
 
     for ROUND_NUMBER in ROUNDS:
-        all_rounds[ROUND_NUMBER] = {} # To be filled with annotation specific kappa scores
+        all_rounds[ROUND_NUMBER] = {}  # To be filled with annotation specific kappa scores
         # for ROUND_NUMBER in range(1,ROUNDS):
         round = data[ROUND_NUMBER]
 
@@ -236,7 +229,7 @@ def calculate_group_kappa(data):
                 # Read xlsx files into two different Series
 
         for annotation_category in ANNOTATION_CATEGORIES:
-            kappa_rater = raters[annotation_category] # List of all raters for the category, for this round
+            kappa_rater = raters[annotation_category]  # List of all raters for the category, for this round
             kappa_data = np.zeros((len(kappa_rater), len(kappa_rater)))
             # Calculate cohen_kappa_score for every combination of raters
             # Combinations are only calculated j -> k, but not k -> j, which are equal
@@ -297,6 +290,55 @@ def calculate_count(data):
     return pd.DataFrame(annotation_data)
 
 
+def create_contingency_table(data):
+    # Get number of rounds
+    ROUNDS = data.keys()
+
+    # Master list of all rounds
+    all_rounds = {}
+
+    for ROUND_NUMBER in ROUNDS:
+        all_rounds[ROUND_NUMBER] = {}  # To be filled with annotation specific kappa scores
+        # for ROUND_NUMBER in range(1,ROUNDS):
+        round = data[ROUND_NUMBER]
+
+        # For each round, grab all raters
+        GROUPS = round.keys()
+        for GROUP_NO in GROUPS:
+
+            # 3 Contingency table per round for each group
+            contingency_tables = {
+                # Each category is a 5 x 5 matrix
+                'Appropriateness': np.zeros((5, 5)),
+                'Information content of outputs': np.zeros((5, 5)),
+                'Humanlikeness': np.zeros((5, 5)),
+            }
+
+            group = round[GROUP_NO]
+
+            # For each annotation category, compile annotations
+            for annotation_category in ANNOTATION_CATEGORIES:
+
+                # Grab list of pd.Series, where each Series is a set of 50 annotations. Two Series per group
+                two_annotations = group[annotation_category]
+
+                # Get each annotation1 - annotation2 pair for each prompt
+                # Fill it inside the contingency table
+                for idx in range(len(two_annotations[0])):
+
+                    # Grab the annotation scores for both raters
+                    first_score = two_annotations[0][idx]
+                    second_score = two_annotations[1][idx]
+
+                    # Add count to the annotation - annotation pairing
+                    contingency_tables[annotation_category][int(first_score-1)][int(second_score-1)] += 1
+
+            # Add contingency table for this group for this round
+            all_rounds[ROUND_NUMBER][GROUP_NO] = contingency_tables
+
+    return all_rounds
+
+
 def get_dfs():
     print('get df ran again :(')
     # Grab data
@@ -307,5 +349,6 @@ def get_dfs():
     kappa_df = calculate_cohen_kappa(data)
     annotation_df = calculate_count(data)
     group_kappa_data = calculate_group_kappa(data)
+    contingency_table = create_contingency_table(data)
 
-    return difference_df, kappa_df, annotation_df, group_kappa_data
+    return difference_df, kappa_df, annotation_df, group_kappa_data, contingency_table
