@@ -147,6 +147,8 @@ def calculate_cohen_kappa(data):
     print('attempting to calculate differences')
     print(os.getcwd())
 
+    labels = [1, 2, 3, 4, 5]
+
     # Get number of rounds
     ROUNDS = data.keys()
     for ROUND_NUMBER in ROUNDS:
@@ -174,7 +176,7 @@ def calculate_cohen_kappa(data):
                 # Combinations are only calculated j -> k, but not k -> j, which are equal
                 # So not all places in the matrix are filled.
                 for j, k in list(itertools.combinations(range(len(raters)), r=2)):
-                    kappa_data[j, k] = cohen_kappa_score(raters[j], raters[k], weights='linear')
+                    kappa_data[j, k] = cohen_kappa_score(raters[j], raters[k], weights='linear', labels=labels)
 
                 kappa_score = kappa_data[0][1]
                 # Add kappa score to dataframe
@@ -195,6 +197,8 @@ def calculate_group_kappa(data):
     print('attempting to calculate differences')
     print(os.getcwd())
 
+    # all possible annotation labels
+    labels = [1, 2, 3, 4, 5]
     # Get number of rounds
     ROUNDS = data.keys()
 
@@ -235,7 +239,7 @@ def calculate_group_kappa(data):
             # Combinations are only calculated j -> k, but not k -> j, which are equal
             # So not all places in the matrix are filled.
             for j, k in list(itertools.combinations(range(len(kappa_rater)), r=2)):
-                kappa_data[j, k] = cohen_kappa_score(kappa_rater[j], kappa_rater[k], weights='linear')
+                kappa_data[j, k] = cohen_kappa_score(kappa_rater[j], kappa_rater[k], weights='linear', labels=labels)
 
             for j in range(len(kappa_rater)):
                 for k in range(len(kappa_rater)):
@@ -325,13 +329,12 @@ def create_contingency_table(data):
                 # Get each annotation1 - annotation2 pair for each prompt
                 # Fill it inside the contingency table
                 for idx in range(len(two_annotations[0])):
-
                     # Grab the annotation scores for both raters
                     first_score = two_annotations[0][idx]
                     second_score = two_annotations[1][idx]
 
                     # Add count to the annotation - annotation pairing
-                    contingency_tables[annotation_category][int(first_score-1)][int(second_score-1)] += 1
+                    contingency_tables[annotation_category][int(first_score - 1)][int(second_score - 1)] += 1
 
             # Add contingency table for this group for this round
             all_rounds[ROUND_NUMBER][GROUP_NO] = contingency_tables
