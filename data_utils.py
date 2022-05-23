@@ -38,7 +38,7 @@ def read_data():
     rounds = {}
     print('attempting to calculate differences')
     print(os.getcwd())
-    for ROUND_NUMBER in range(1, ROUNDS):
+    for ROUND_NUMBER in range(1, ROUNDS + 1):
         groups = {}
         for GROUP_NO in range(1, 6):
             categories = {}
