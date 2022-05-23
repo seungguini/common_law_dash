@@ -121,20 +121,20 @@ def create_histograms_annotations(df, category):
 def create_heatmap_kappa(data, category):
     fig = make_subplots(
         1,
-        3,
+        5,
         # len(data.keys()),
         vertical_spacing=0.05,
         horizontal_spacing=0.05,
         # shared_yaxes=True,
         # subplot_titles=[f"Round {i}" for i in data.keys()]
-        subplot_titles=[f"Round 1", "Round 2", "Round 3"]
+        subplot_titles=[f"Round 1", "Round 2", "Round 3", "Round 4", "Round 5"]
     )
 
     # Patches to add emphasis on groups
 
     for idx, round in enumerate(data.keys()):
-        if round > 3:
-            break
+        # if round > 3:
+        #     break
         round_data = data[round][category]
 
         fig.add_trace(
@@ -160,7 +160,7 @@ def create_heatmap_kappa(data, category):
 
 def create_contingency_heatmap(data, kappa_data, category):
 
-    NUM_ROUNDS = 3
+    NUM_ROUNDS = 5
 
     subplot_titles = []
     # GROUP FIRST - group = row, round = col
@@ -180,8 +180,8 @@ def create_contingency_heatmap(data, kappa_data, category):
     # Patches to add emphasis on groups
 
     for round in data.keys():
-        if round > NUM_ROUNDS:
-            break
+        # if round > NUM_ROUNDS:
+        #     break
 
         for group in data[round].keys():
 
