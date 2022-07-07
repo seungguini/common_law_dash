@@ -14,7 +14,7 @@ import itertools
 # File path to annotations folder
 
 BASE_PATH = './annotations/round'
-ROUNDS = 5
+ROUNDS = 6
 # NUMBER_OF_GROUPS = 4
 
 ANNOTATION_CATEGORIES = ['Appropriateness', 'Information content of outputs', 'Humanlikeness']
@@ -61,7 +61,11 @@ def read_data():
                 difference_count = [0, 0, 0, 0, 0]  # Differences of 0, 1, 2, 3, 4
 
                 for xlsx_annotator in xlsx_files:
-                    annotator_df = pd.read_excel(xlsx_annotator, engine='openpyxl')[:50]
+                    if ROUND_NUMBER!=6:
+                        annotator_df = pd.read_excel(xlsx_annotator, engine='openpyxl')[:50]
+                    else:
+                        annotator_df = pd.read_excel(xlsx_annotator, engine='openpyxl')[:400]
+                    
 
                     # Convert each column (series) into lists
                     annotations = annotator_df[annotation_category]
@@ -117,7 +121,11 @@ def calculate_differences(data):
                 difference_count = [0, 0, 0, 0, 0]  # Differences of 0, 1, 2, 3, 4
 
                 # Calculate differences in annotation values
-                differences = np.absolute(raters[0] - raters[1])[:50].astype('int32')
+                if ROUND_NUMBER != 6:
+                    differences = np.absolute(raters[0] - raters[1])[:50].astype('int32')
+                else:
+                    differences = np.absolute(raters[0] - raters[1])[:400].astype('int32')
+                
                 for difference in differences:
                     difference_count[difference] += 1
 
@@ -147,6 +155,7 @@ def calculate_cohen_kappa(data):
     print('attempting to calculate differences')
     print(os.getcwd())
 
+    # all possible annotation labels
     labels = [1, 2, 3, 4, 5]
 
     # Get number of rounds
